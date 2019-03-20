@@ -63,8 +63,8 @@ impl Sink {
         let controls = self.controls.clone();
 
         let source = source
-            .pausable(false)
-            .amplify(1.0)
+            .pausable(self.controls.pause.load(Ordering::SeqCst))
+            .amplify(*self.controls.volume.lock().unwrap())
             .stoppable()
             .periodic_access(Duration::from_millis(5), move |src| {
                 if controls.stopped.load(Ordering::SeqCst) {
