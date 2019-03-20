@@ -22,6 +22,25 @@ where
     }
 }
 
+/// Internal function that builds a `PeriodicAccess` object which will execute the closure on the first iteration access.
+pub fn periodic_leading<I, F>(source: I, period: Duration, modifier: F) -> PeriodicAccess<I, F>
+where
+    I: Source,
+    I::Item: Sample,
+{
+    // TODO: handle the fact that the samples rate can change
+    // TODO: generally, just wrong
+    let update_ms = period.as_secs() as u32 * 1_000 + period.subsec_nanos() / 1_000_000;
+    let update_frequency = (update_ms * source.sample_rate()) / 1000;
+
+    PeriodicAccess {
+        input: source,
+        modifier: modifier,
+        update_frequency: update_frequency,
+        samples_until_update: 1,
+    }
+}
+
 /// Calls a function on a source every time a period elapsed.
 #[derive(Clone, Debug)]
 pub struct PeriodicAccess<I, F> {

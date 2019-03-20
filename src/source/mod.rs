@@ -221,6 +221,17 @@ where
         periodic::periodic(self, period, access)
     }
 
+    /// Calls the `access` closure on `Self` the first time Self is accessed and then every time
+    /// `period` has elapsed.
+    #[inline]
+    fn periodic_access_leading<F>(self, period: Duration, access: F) -> PeriodicAccess<Self, F>
+    where
+        Self: Sized,
+        F: FnMut(&mut Self),
+    {
+        periodic::periodic_leading(self, period, access)
+    }
+
     /// Changes the play speed of the sound. Does not adjust the samples, only the play speed.
     #[inline]
     fn speed(self, ratio: f32) -> Speed<Self>
