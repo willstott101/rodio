@@ -3,16 +3,21 @@ use std::time::Duration;
 use Sample;
 use Source;
 
+fn calc_update_frequency(sample_rate: u32, period: Duration) -> u32
+{
+    // TODO: handle the fact that the samples rate can change
+    // TODO: generally, just wrong
+    let update_ms = period.as_secs() as u32 * 1_000 + period.subsec_nanos() / 1_000_000;
+    (update_ms * sample_rate) / 1000
+}
+
 /// Internal function that builds a `PeriodicAccess` object.
 pub fn periodic<I, F>(source: I, period: Duration, modifier: F) -> PeriodicAccess<I, F>
 where
     I: Source,
     I::Item: Sample,
 {
-    // TODO: handle the fact that the samples rate can change
-    // TODO: generally, just wrong
-    let update_ms = period.as_secs() as u32 * 1_000 + period.subsec_nanos() / 1_000_000;
-    let update_frequency = (update_ms * source.sample_rate()) / 1000;
+    let update_frequency = calc_update_frequency(source.sample_rate(), period);
 
     PeriodicAccess {
         input: source,
@@ -22,16 +27,13 @@ where
     }
 }
 
-/// Internal function that builds a `PeriodicAccess` object which will execute the closure on the first iteration access.
+/// Internal function that builds a `PeriodicAccess` object with the first call on the first iteration.
 pub fn periodic_leading<I, F>(source: I, period: Duration, modifier: F) -> PeriodicAccess<I, F>
 where
     I: Source,
     I::Item: Sample,
 {
-    // TODO: handle the fact that the samples rate can change
-    // TODO: generally, just wrong
-    let update_ms = period.as_secs() as u32 * 1_000 + period.subsec_nanos() / 1_000_000;
-    let update_frequency = (update_ms * source.sample_rate()) / 1000;
+    let update_frequency = calc_update_frequency(source.sample_rate(), period);
 
     PeriodicAccess {
         input: source,
