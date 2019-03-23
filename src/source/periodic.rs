@@ -3,12 +3,11 @@ use std::time::Duration;
 use Sample;
 use Source;
 
-fn calc_update_frequency(sample_rate: u32, period: Duration) -> u32
+fn calc_update_frequency(sample_rate: u32, channel_count: u16, period: Duration) -> u32
 {
     // TODO: handle the fact that the samples rate can change
-    // TODO: generally, just wrong
     let update_ms = period.as_secs() as u32 * 1_000 + period.subsec_nanos() / 1_000_000;
-    (update_ms * sample_rate) / 1000
+    (update_ms * sample_rate * channel_count as u32) / 1000
 }
 
 /// Internal function that builds a `PeriodicAccess` object.
@@ -17,7 +16,7 @@ where
     I: Source,
     I::Item: Sample,
 {
-    let update_frequency = calc_update_frequency(source.sample_rate(), period);
+    let update_frequency = calc_update_frequency(source.sample_rate(), source.channels(), period);
 
     PeriodicAccess {
         input: source,
@@ -33,7 +32,7 @@ where
     I: Source,
     I::Item: Sample,
 {
-    let update_frequency = calc_update_frequency(source.sample_rate(), period);
+    let update_frequency = calc_update_frequency(source.sample_rate(), source.channels(), period);
 
     PeriodicAccess {
         input: source,
